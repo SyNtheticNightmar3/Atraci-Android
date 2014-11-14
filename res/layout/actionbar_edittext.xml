@@ -9,6 +9,7 @@
         android:id="@+id/addplaylist_field"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
+        android:background="@drawable/textfield_activated_holo"
         android:hint="@string/playlist_hint" >
                 <requestFocus /> 
     </EditText>

@@ -42,7 +42,7 @@
     <string name="playlists">My Playlists</string>
     <string name="top100">Top 100 Chart</string>
     <string name="add_playlist">Add Playlist</string>
-    <string name="playlist_hint">Enter playlist name</string>
+    <string name="playlist_hint">Enter playlist name...</string>
     <string name="shuffle">Shuffle</string>
     <string name="repeat">Repeat</string>
     <string name="playlist_exists">"That playlist already exists! Please choose a different name!"</string>
