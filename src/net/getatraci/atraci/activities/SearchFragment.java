@@ -44,6 +44,7 @@ public class SearchFragment extends Fragment implements OnItemClickListener, Loa
 	private Timer timer = new Timer();
 	private final long SEARCH_TRIGGER_DELAY_IN_MS = 600;
 	private static final int LID_LFM = 0;
+	private boolean songlistLaunched = false;
 	private SongListFragment songlist;
 	private EditText searchField;
 
@@ -76,7 +77,8 @@ public class SearchFragment extends Fragment implements OnItemClickListener, Loa
 		if(songlist == null){
 			songlist = new SongListFragment();
 		}
-			songlist.setBundle(bundle);
+		songlistLaunched = true;
+		songlist.setBundle(bundle);
 		hideKeyBoard(searchField.getApplicationWindowToken(), getActivity());
 		
 		getFragmentManager().beginTransaction().replace(R.id.root_frame, songlist).commit();
@@ -227,16 +229,16 @@ public class SearchFragment extends Fragment implements OnItemClickListener, Loa
 		bundle.putString("query", text);
 		bundle.putBoolean("isPlaylist", false);
 		launchSongList(bundle);
-		hideKeyBoard(searchField.getApplicationWindowToken(), getActivity());
 		return true;
 	}
 
 	@Override
 	public boolean onClose() {
-		if (SearchFragment.this.isVisible()) {
+		if (SearchFragment.this.isVisible() && !songlistLaunched) {
 			hideKeyBoard(searchField.getApplicationWindowToken(), getActivity());
 			getFragmentManager().popBackStackImmediate();
 		}
+		songlistLaunched = false;
 		return true;
 	}
 	
