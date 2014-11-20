@@ -2,7 +2,6 @@ package net.getatraci.atraci.activities;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.Timer;
@@ -15,6 +14,7 @@ import net.getatraci.atraci.data.MusicItem;
 import net.getatraci.atraci.interfaces.PlayerJSInterface;
 import net.getatraci.atraci.interfaces.RemoteControlReceiver;
 import net.getatraci.atraci.json.JSONParser;
+import net.getatraci.atraci.loaders.PlayerLoaderService;
 import net.getatraci.atraci.loaders.QueueListAdapter;
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -26,8 +26,10 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.graphics.Color;
 import android.media.AudioManager;
+import android.os.IBinder;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -76,6 +78,22 @@ public class PlayerFragment extends Fragment implements OnItemClickListener{
 	private Bundle bundle;
 	private boolean HTMLLoaded = false;
 	private int timePlayed = 0;
+	private Intent mIntent;
+	PlayerLoaderService mService;
+	boolean mBound = false;
+
+	private ServiceConnection mConnection = new ServiceConnection() {
+
+		public void onServiceConnected(ComponentName className,
+			IBinder service) {
+			PlayerLoaderService.PlayerBinder binder = (PlayerLoaderService.PlayerBinder) service;
+			mService = binder.getService();
+			mBound = true;
+		}
+		public void onServiceDisconnected(ComponentName arg0) {
+			mBound = false;
+		}
+	};
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -141,6 +159,9 @@ public class PlayerFragment extends Fragment implements OnItemClickListener{
 		// Start listening for button presses
 		am.registerMediaButtonEventReceiver(new ComponentName(getActivity().getPackageName(),RemoteControlReceiver.class.getName()));
 		getActivity().registerReceiver(new RemoteControlReceiver(), new IntentFilter(Intent.ACTION_HEADSET_PLUG));
+		mIntent = new Intent(getActivity(), PlayerLoaderService.class);
+		if (!mBound)
+			getActivity().getApplicationContext().bindService(mIntent, mConnection, Context.BIND_AUTO_CREATE);
 	}
 
 	@Override
@@ -190,10 +211,10 @@ public class PlayerFragment extends Fragment implements OnItemClickListener{
 			ytLink = new AsyncYoutubeGetter(song.getTrack() + " - " + song.getArtist()).get();
 			song.setYoutube(ytLink);
 			HomeActivity.getDatabase().addToHistory(song);
-			wv.loadUrl("javascript:player.loadVideoById(\""+ JSONParser.extractYoutubeId(ytLink)+"\", 0, \"large\");");
+			mService.getNextSong(wv, ytLink);
 			setTimePlayed(0);
 			playVideo();
-		} catch (InterruptedException | ExecutionException | MalformedURLException e) {
+		} catch (InterruptedException | ExecutionException e) {
 			e.printStackTrace();
 		}
 	}
